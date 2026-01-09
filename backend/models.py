@@ -22,7 +22,7 @@ class Commit(Base):
     category = Column(String, index=True)
     effort = Column(Integer, default=1)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    repository_id = Column(Integer, ForeignKey("repositories.id"), nullable=True)
+    repository_id = Column(Integer, ForeignKey("repositories.id", ondelete="CASCADE"), nullable=False)
 
     repository = relationship("Repository", back_populates="commits")
 

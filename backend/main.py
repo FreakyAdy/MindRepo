@@ -41,6 +41,15 @@ def create_repository(repo: schemas.RepositoryCreate, db: Session = Depends(get_
 def read_repositories(db: Session = Depends(get_db)):
     return db.query(models.Repository).all()
 
+@app.delete("/repositories/{repo_id}")
+def delete_repository(repo_id: int, db: Session = Depends(get_db)):
+    db_repo = db.query(models.Repository).filter(models.Repository.id == repo_id).first()
+    if db_repo is None:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    db.delete(db_repo)
+    db.commit()
+    return {"message": "Repository and associated commits deleted"}
+
 # --- Commits ---
 @app.post("/commits", response_model=schemas.Commit)
 def create_commit(commit: schemas.CommitCreate, db: Session = Depends(get_db)):
@@ -105,3 +114,8 @@ def get_latest_insight(db: Session = Depends(get_db)):
 def refresh_insight(db: Session = Depends(get_db)):
     commits = crud.get_commits(db)
     return insight_engine.generate_insight(db, commits)
+
+# --- Profile ---
+@app.get("/profile", response_model=schemas.ProfileStats)
+def get_profile_stats(db: Session = Depends(get_db)):
+    return crud.get_profile_stats(db)

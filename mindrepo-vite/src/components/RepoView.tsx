@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FileCode, FileText, GitBranch, Star, Eye } from 'lucide-react';
 import { useCommits } from '../hooks/useCommits';
+import { CommitForm } from './CommitForm';
+import { Timeline } from './Timeline';
 import type { Repository, Commit } from '../types';
 
 interface RepoViewProps {
@@ -9,7 +11,7 @@ interface RepoViewProps {
 }
 
 export const RepoView: React.FC<RepoViewProps> = ({ repository }) => {
-    const { commits, refresh } = useCommits();
+    const { commits, addCommit, deleteCommit, updateCommit, refresh } = useCommits();
     const [repoCommits, setRepoCommits] = useState<Commit[]>([]);
 
     useEffect(() => {
@@ -25,7 +27,17 @@ export const RepoView: React.FC<RepoViewProps> = ({ repository }) => {
     }, [commits, repository]);
 
     if (!repository) {
-        return <div className="p-8 text-center text-subtext0">Select a repository to view details</div>;
+        return (
+            <div className="p-8 text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-full bg-surface0 flex items-center justify-center">
+                    <GitBranch size={32} className="text-subtext0" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg text-text mb-2">Select a Repository</h3>
+                    <p className="text-sm text-subtext0">Choose a repository from the sidebar to view its commits and details.</p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -57,6 +69,14 @@ export const RepoView: React.FC<RepoViewProps> = ({ repository }) => {
                 </div>
             </div>
 
+            {/* Commit Form */}
+            <div className="mb-6 bg-mantle border border-surface0 rounded-lg overflow-hidden shadow-sm">
+                <div className="border-b border-surface0 bg-surface0/30 px-4 py-2">
+                    <h3 className="text-sm font-bold text-text">Create New Commit</h3>
+                </div>
+                <CommitForm onAdd={addCommit} />
+            </div>
+
             {/* Branch / Meta */}
             <div className="flex justify-between items-center mb-4">
                 <button className="flex items-center gap-2 px-3 py-1.5 bg-surface0 rounded border border-surface1 text-sm font-bold hover:border-subtext0 transition-colors">
@@ -68,6 +88,16 @@ export const RepoView: React.FC<RepoViewProps> = ({ repository }) => {
                     <span className="hover:text-blue cursor-pointer"><strong>1</strong> branch</span>
                     <span className="hover:text-blue cursor-pointer"><strong>0</strong> tags</span>
                 </div>
+            </div>
+
+            {/* Commits Timeline */}
+            <div className="mb-6">
+                <h3 className="text-sm font-bold text-text mb-3 px-1">Recent Commits</h3>
+                <Timeline
+                    commits={repoCommits}
+                    onDelete={deleteCommit}
+                    onUpdate={updateCommit}
+                />
             </div>
 
             {/* File Tree (Simulated for aesthetics, but lists recent categories as folders) */}

@@ -4,12 +4,13 @@ import { CommitForm } from './components/CommitForm';
 import { Timeline } from './components/Timeline';
 import { Insights } from './components/Insights';
 import { RepoView } from './components/RepoView';
+import { Profile } from './components/Profile';
 import { useCommits } from './hooks/useCommits';
 import { BookMarked, Search, Filter, GitBranch, Calendar, Settings as SettingsIcon } from 'lucide-react';
 import type { Repository } from './types';
 
 // View Types
-type View = 'dashboard' | 'repository' | 'settings';
+type View = 'dashboard' | 'repository' | 'settings' | 'profile';
 
 function useDebounceValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -23,7 +24,7 @@ function useDebounceValue<T>(value: T, delay: number): T {
 const CATEGORIES = ['All', 'Coding', 'Learning', 'Health', 'Meeting', 'Planning', 'Other'];
 
 function App() {
-  const { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, refresh } = useCommits();
+  const { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, deleteRepository, refresh } = useCommits();
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [activeRepo, setActiveRepo] = useState<Repository | undefined>(undefined);
 
@@ -36,6 +37,10 @@ function App() {
   const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
   const [newRepoName, setNewRepoName] = useState('');
   const [newRepoDesc, setNewRepoDesc] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete Repo Confirmation State
+  const [repoToDelete, setRepoToDelete] = useState<Repository | null>(null);
 
   useEffect(() => {
     if (currentView === 'dashboard') {
@@ -45,11 +50,36 @@ function App() {
 
   const handleCreateRepo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRepoName) return;
-    await createRepository(newRepoName, newRepoDesc);
-    setIsRepoModalOpen(false);
-    setNewRepoName('');
-    setNewRepoDesc('');
+    console.log("Attempting to create repo:", newRepoName);
+    if (!newRepoName) {
+      console.log("Repo name is empty, aborting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createRepository(newRepoName, newRepoDesc);
+      console.log("Repo created successfully");
+      setIsRepoModalOpen(false);
+      setNewRepoName('');
+      setNewRepoDesc('');
+    } catch (error) {
+      console.error("Failed to create repo:", error);
+      alert("Failed to create repository. Check console for details.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteRepo = async () => {
+    if (!repoToDelete) return;
+    await deleteRepository(repoToDelete.id);
+    // If the deleted repo was active, clear it
+    if (activeRepo?.id === repoToDelete.id) {
+      setActiveRepo(undefined);
+      setCurrentView('dashboard');
+    }
+    setRepoToDelete(null);
   };
 
   return (
@@ -57,6 +87,7 @@ function App() {
       view={currentView}
       onNavigate={(v) => setCurrentView(v as View)}
       onPlusClick={() => setIsRepoModalOpen(true)}
+      onProfileClick={() => setCurrentView('profile')}
     >
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-8">
 
@@ -107,6 +138,10 @@ function App() {
                       setActiveRepo(repo);
                       setCurrentView('repository');
                     }}
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      setRepoToDelete(repo);
+                    }}
                   />
                 ))}
                 {repositories.length === 0 && (
@@ -142,8 +177,10 @@ function App() {
         <div className="min-h-[500px]">
           {currentView === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-mantle border border-surface0 rounded-lg p-1 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue"></div>
+              <div className="bg-mantle border border-surface0 rounded-lg shadow-lg relative overflow-hidden group">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue/50 to-transparent"></div>
+                <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-blue/50 to-transparent opacity-50"></div>
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue/5 rounded-full blur-3xl pointer-events-none"></div>
                 <CommitForm onAdd={addCommit} />
               </div>
 
@@ -184,6 +221,18 @@ function App() {
               <h2 className="text-xl font-bold text-text mb-2">Settings</h2>
               <p className="text-subtext0">Configuration options coming soon.</p>
             </div>
+          )}
+
+          {currentView === 'profile' && (
+            <Profile
+              onNavigateRepo={(repoId) => {
+                const repo = repositories.find(r => r.id === repoId);
+                if (repo) {
+                  setActiveRepo(repo);
+                  setCurrentView('repository');
+                }
+              }}
+            />
           )}
         </div>
 
@@ -269,12 +318,40 @@ function App() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green hover:bg-green/90 text-crust font-bold rounded text-sm transition-colors"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-green hover:bg-green/90 disabled:opacity-70 disabled:cursor-not-allowed text-crust font-bold rounded text-sm transition-colors flex items-center gap-2"
                 >
-                  Create Repository
+                  {isSubmitting ? 'Creating...' : 'Create Repository'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE REPO CONFIRMATION MODAL */}
+      {repoToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-crust/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-mantle border border-red/30 rounded-lg p-6 w-full max-w-md shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-red mb-2">Delete Repository?</h2>
+            <p className="text-sm text-subtext0 mb-4">
+              Are you sure you want to delete <strong className="text-text">{repoToDelete.name}</strong>?
+              This will also delete all associated commits. This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setRepoToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-subtext0 hover:text-text transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteRepo}
+                className="px-4 py-2 bg-red hover:bg-red/90 text-crust font-bold rounded text-sm transition-colors"
+              >
+                Delete Repository
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -298,14 +375,25 @@ const NavItem = ({ icon, label, active, onClick }: { icon: any, label: string, a
   </button>
 );
 
-const RepoItem = ({ name, active, onClick }: { name: string, active: boolean, onClick: () => void }) => (
+const RepoItem = ({ name, active, onClick, onDelete }: { name: string, active: boolean, onClick: () => void, onDelete: (e: React.MouseEvent) => void }) => (
   <div
     onClick={onClick}
     className={`flex items-center gap-2 cursor-pointer p-2 rounded-md transition-colors group ${active ? 'bg-surface0/80 border border-surface1' : 'hover:bg-surface0 border border-transparent'
       }`}
   >
     <BookMarked size={14} className={`${active ? 'text-blue' : 'text-subtext0'} group-hover:text-blue transition-colors`} />
-    <span className={`text-sm font-medium ${active ? 'text-text' : 'text-subtext0'} group-hover:text-text transition-colors truncate`}>{name}</span>
+    <span className={`text-sm font-medium flex-1 ${active ? 'text-text' : 'text-subtext0'} group-hover:text-text transition-colors truncate`}>{name}</span>
+    <button
+      onClick={onDelete}
+      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red/20 rounded transition-all"
+      title="Delete repository"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red">
+        <path d="M3 6h18" />
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      </svg>
+    </button>
   </div>
 );
 

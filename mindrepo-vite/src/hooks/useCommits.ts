@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchCommits, createCommit, deleteCommit as apiDeleteCommit, updateCommit as apiUpdateCommit, fetchRepositories, createRepository as apiCreateRepository } from '../api';
+import { fetchCommits, createCommit, deleteCommit as apiDeleteCommit, updateCommit as apiUpdateCommit, fetchRepositories, createRepository as apiCreateRepository, deleteRepository as apiDeleteRepository } from '../api';
 import type { Commit, NewCommit, Repository } from '../types';
 
 export function useCommits() {
@@ -42,5 +42,12 @@ export function useCommits() {
         return newRepo;
     };
 
-    return { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, refresh, refreshRepos };
+    const deleteRepository = async (id: number) => {
+        await apiDeleteRepository(id);
+        setRepositories(prev => prev.filter(r => r.id !== id));
+        // Also remove commits from this repository
+        setCommits(prev => prev.filter(c => c.repository_id !== id));
+    };
+
+    return { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, deleteRepository, refresh, refreshRepos };
 }

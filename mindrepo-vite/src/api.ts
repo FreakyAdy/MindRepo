@@ -1,4 +1,4 @@
-import type { Commit, NewCommit, Repository } from './types';
+import type { Commit, NewCommit, Repository, ProfileStats } from './types';
 
 const API_URL = 'http://localhost:8000';
 
@@ -77,6 +77,13 @@ export async function createRepository(name: string, description?: string): Prom
     return res.json();
 }
 
+export async function deleteRepository(id: number): Promise<void> {
+    const res = await fetch(`${API_URL}/repositories/${id}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete repository');
+}
+
 export async function fetchInsights() {
     const res = await fetch(`${API_URL}/insights`);
     return res.json();
@@ -87,6 +94,20 @@ export async function refreshInsights() {
     return res.json();
 }
 
+export async function fetchProfile(): Promise<ProfileStats | null> {
+    try {
+        const res = await fetch(`${API_URL}/profile`);
+        if (!res.ok) {
+            console.error(`API Error (fetchProfile): ${res.status} ${res.statusText}`);
+            return null;
+        }
+        return res.json();
+    } catch (error) {
+        console.error("Network Error (fetchProfile):", error);
+        return null;
+    }
+}
+
 export const api = {
     fetchCommits,
     createCommit,
@@ -94,6 +115,8 @@ export const api = {
     updateCommit,
     fetchRepositories,
     createRepository,
+    deleteRepository,
     fetchInsights,
     refreshInsights,
+    fetchProfile,
 };

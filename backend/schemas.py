@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 
 # --- Repository Schemas ---
@@ -58,3 +58,29 @@ class Insight(InsightBase):
 
     class Config:
         orm_mode = True
+
+# --- Profile Stats Schemas ---
+class HeatmapPoint(BaseModel):
+    date: str  # YYYY-MM-DD
+    count: int
+    level: int # 0-4 intensity
+
+class RepoSummary(BaseModel):
+    id: int
+    name: str
+    total_commits: int
+    last_activity: Optional[datetime]
+    primary_category: Optional[str]
+
+class CategoryStat(BaseModel):
+    category: str
+    count: int
+
+class ProfileStats(BaseModel):
+    total_repos: int
+    total_commits: int
+    active_days: int
+    most_active_category: Optional[str]
+    heatmap_data: List[HeatmapPoint]
+    repo_summaries: List[RepoSummary]
+    category_breakdown: List[CategoryStat]

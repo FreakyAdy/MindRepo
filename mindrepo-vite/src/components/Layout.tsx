@@ -6,9 +6,10 @@ interface LayoutProps {
     view?: string;
     onNavigate?: (view: string) => void;
     onPlusClick?: () => void;
+    onProfileClick?: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPlusClick }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPlusClick, onProfileClick }) => {
     return (
         <div className="min-h-screen bg-base text-text font-sans selection:bg-blue/30">
             {/* Header */}
@@ -75,7 +76,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPl
                             <span className="absolute top-1 right-1.5 w-2 h-2 bg-blue rounded-full border-2 border-mantle"></span>
                         </button>
 
-                        <div className="w-8 h-8 rounded-full bg-surface0 border border-surface1 ml-2 cursor-pointer hover:border-subtext0 transition-colors bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix')] bg-cover"></div>
+                        <div onClick={onProfileClick} className="w-8 h-8 rounded-full bg-surface0 border border-surface1 ml-2 cursor-pointer hover:border-subtext0 transition-colors bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix')] bg-cover"></div>
                     </div>
                 </div>
             </header>

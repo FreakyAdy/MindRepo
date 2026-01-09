@@ -1,56 +1,64 @@
 from database import SessionLocal, engine
 from models import Base, Commit, Repository
 from datetime import datetime, timedelta
-import random
 
 # Create tables
-Base.metadata.drop_all(bind=engine) # RESET DB
 Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-# 1. Create Repositories
-repos_data = [
-    {"name": "mindrepo/coding", "description": "Tracking coding practice and projects"},
-    {"name": "mindrepo/learning", "description": "Notes from books and courses"},
-    {"name": "mindrepo/health", "description": "Workout logs and meditation"},
-    {"name": "mindrepo/meeting", "description": "Work meeting notes"},
-    {"name": "mindrepo/planning", "description": "Future goals and todo lists"},
+# Check if database is already populated
+existing_repos = db.query(Repository).count()
+if existing_repos > 0:
+    print("⏭️  Database already contains data. Skipping seed.")
+    db.close()
+    exit(0)
+
+print("🌱 Seeding database with demo data...")
+
+# Create the demo repository
+demo_repo = Repository(
+    name="learning-dsa",
+    description="Tracking my data structures and algorithms journey"
+)
+db.add(demo_repo)
+db.commit()
+db.refresh(demo_repo)
+
+print(f"✅ Created repository: {demo_repo.name}")
+
+# Create the 3 demo commits
+demo_commits = [
+    {
+        "title": "Watched arrays lecture",
+        "description": "Covered basics and time complexity",
+        "category": "Study",
+        "effort": 3,
+        "timestamp": datetime.utcnow() - timedelta(hours=48)
+    },
+    {
+        "title": "Solved 5 LeetCode problems",
+        "description": "3 easy, 2 medium",
+        "category": "Study",
+        "effort": 4,
+        "timestamp": datetime.utcnow() - timedelta(hours=24)
+    },
+    {
+        "title": "Skipped practice",
+        "description": "Felt tired after exams",
+        "category": "Wellbeing",
+        "effort": 1,
+        "timestamp": datetime.utcnow() - timedelta(hours=6)
+    }
 ]
 
-repos = {}
-for r_data in repos_data:
-    repo = Repository(**r_data)
-    db.add(repo)
-    db.commit()
-    db.refresh(repo)
-    repos[r_data["name"]] = repo
-
-print("✅ Repositories created")
-
-# 2. Create Commits
-categories = ["Coding", "Learning", "Health", "Meeting", "Planning"]
-titles = [
-    "Started DSA practice", "Read 'Atomic Habits'", "Morning meditation", 
-    "Team sync", "Weekly planning", "Refactored API", "Learned Rust basics",
-    "Gym session", "Client call", "Budget review"
-]
-
-for i in range(15):
-    cat = random.choice(categories)
-    # Match category to repo strictly for demo
-    repo_name = f"mindrepo/{cat.lower()}"
-    repo = repos.get(repo_name)
-    
+for commit_data in demo_commits:
     commit = Commit(
-        title=random.choice(titles),
-        description=f"Description for commit {i+1}...",
-        category=cat,
-        effort=random.randint(1, 5),
-        timestamp=datetime.utcnow() - timedelta(hours=random.randint(1, 72)),
-        repository_id=repo.id if repo else None
+        **commit_data,
+        repository_id=demo_repo.id
     )
     db.add(commit)
+    print(f"✅ Created commit: {commit.title}")
 
 db.commit()
 print("✅ Seed data populated successfully!")

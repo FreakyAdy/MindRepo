@@ -89,195 +89,195 @@ function App() {
       onPlusClick={() => setIsRepoModalOpen(true)}
       onProfileClick={() => setCurrentView('profile')}
     >
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-8">
+      {currentView === 'profile' ? (
+        <Profile
+          onNavigateRepo={(repoId) => {
+            const repo = repositories.find(r => r.id === repoId);
+            if (repo) {
+              setActiveRepo(repo);
+              setCurrentView('repository');
+            }
+          }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-8">
 
-        {/* LEFT COLUMN: Navigation & Repos */}
-        <div className="space-y-6">
-          {/* Navigation Menu */}
-          <div className="bg-mantle border border-surface0 rounded-lg p-2 shadow-sm">
-            <NavItem
-              icon={<Calendar size={16} />}
-              label="Dashboard"
-              active={currentView === 'dashboard'}
-              onClick={() => { setCurrentView('dashboard'); setActiveRepo(undefined); }}
-            />
-            <NavItem
-              icon={<GitBranch size={16} />}
-              label="Repositories"
-              active={currentView === 'repository' && !activeRepo}
-              onClick={() => { setCurrentView('repository'); setActiveRepo(undefined); }}
-            />
-            <NavItem
-              icon={<SettingsIcon size={16} />}
-              label="Settings"
-              active={currentView === 'settings'}
-              onClick={() => setCurrentView('settings')}
-            />
-          </div>
-
-          {/* Top Repos */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <span className="font-bold text-sm text-text">Repositories</span>
-              <button
-                onClick={() => setIsRepoModalOpen(true)}
-                className="bg-green hover:bg-green/90 text-crust text-xs px-2 py-0.5 rounded font-bold transition-all"
-              >
-                New
-              </button>
+          {/* LEFT COLUMN: Navigation & Repos */}
+          <div className="space-y-6">
+            {/* Navigation Menu */}
+            <div className="bg-mantle border border-surface0 rounded-lg p-2 shadow-sm">
+              <NavItem
+                icon={<Calendar size={16} />}
+                label="Dashboard"
+                active={currentView === 'dashboard'}
+                onClick={() => { setCurrentView('dashboard'); setActiveRepo(undefined); }}
+              />
+              <NavItem
+                icon={<GitBranch size={16} />}
+                label="Repositories"
+                active={currentView === 'repository' && !activeRepo}
+                onClick={() => { setCurrentView('repository'); setActiveRepo(undefined); }}
+              />
+              <NavItem
+                icon={<SettingsIcon size={16} />}
+                label="Settings"
+                active={currentView === 'settings'}
+                onClick={() => setCurrentView('settings')}
+              />
             </div>
 
-            <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
-              <div className="p-2 space-y-1">
-                {repositories.map(repo => (
-                  <RepoItem
-                    key={repo.id}
-                    name={repo.name}
-                    active={activeRepo?.id === repo.id}
-                    onClick={() => {
-                      setActiveRepo(repo);
-                      setCurrentView('repository');
-                    }}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      setRepoToDelete(repo);
-                    }}
-                  />
-                ))}
-                {repositories.length === 0 && (
-                  <div className="text-xs text-subtext0 p-2 text-center">No repositories found.</div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Categories Wrapper */}
-          {currentView === 'dashboard' && (
-            <div className="bg-mantle border border-surface0 rounded-lg p-4 shadow-sm">
-              <h3 className="font-bold text-sm mb-3 text-text">Categories</h3>
-              <div className="flex flex-wrap gap-2">
-                {CATEGORIES.slice(1).map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${selectedCategory === cat
-                      ? 'bg-blue text-base border-blue'
-                      : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
-                      }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* CENTER COLUMN: Main Content */}
-        <div className="min-h-[500px]">
-          {currentView === 'dashboard' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-mantle border border-surface0 rounded-lg shadow-lg relative overflow-hidden group">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue/50 to-transparent"></div>
-                <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-blue/50 to-transparent opacity-50"></div>
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue/5 rounded-full blur-3xl pointer-events-none"></div>
-                <CommitForm onAdd={addCommit} />
+            {/* Top Repos */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="font-bold text-sm text-text">Repositories</span>
+                <button
+                  onClick={() => setIsRepoModalOpen(true)}
+                  className="bg-green hover:bg-green/90 text-crust text-xs px-2 py-0.5 rounded font-bold transition-all"
+                >
+                  New
+                </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-mantle border border-surface0 rounded-lg p-2 shadow-sm">
-                  <div className="flex items-center gap-3 px-2 flex-1">
-                    <Search size={16} className="text-subtext0" />
-                    <input
-                      type="text"
-                      placeholder="Filter by commit message..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-subtext0 text-text"
+              <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+                <div className="p-2 space-y-1">
+                  {repositories.map(repo => (
+                    <RepoItem
+                      key={repo.id}
+                      name={repo.name}
+                      active={activeRepo?.id === repo.id}
+                      onClick={() => {
+                        setActiveRepo(repo);
+                        setCurrentView('repository');
+                      }}
+                      onDelete={(e) => {
+                        e.stopPropagation();
+                        setRepoToDelete(repo);
+                      }}
                     />
-                  </div>
-                  <div className="h-6 w-px bg-surface0"></div>
-                  <div className="px-2">
-                    <Filter size={16} className="text-subtext0 cursor-pointer hover:text-text transition-colors" />
-                  </div>
-                </div>
-
-                <Timeline
-                  commits={commits}
-                  onDelete={deleteCommit}
-                  onUpdate={updateCommit}
-                />
-              </div>
-            </div>
-          )}
-
-          {currentView === 'repository' && (
-            <RepoView repository={activeRepo} />
-          )}
-
-          {currentView === 'settings' && (
-            <div className="bg-mantle border border-surface0 rounded-lg p-8 text-center animate-in zoom-in-95 duration-300">
-              <SettingsIcon size={48} className="mx-auto text-surface1 mb-4" />
-              <h2 className="text-xl font-bold text-text mb-2">Settings</h2>
-              <p className="text-subtext0">Configuration options coming soon.</p>
-            </div>
-          )}
-
-          {currentView === 'profile' && (
-            <Profile
-              onNavigateRepo={(repoId) => {
-                const repo = repositories.find(r => r.id === repoId);
-                if (repo) {
-                  setActiveRepo(repo);
-                  setCurrentView('repository');
-                }
-              }}
-            />
-          )}
-        </div>
-
-        {/* RIGHT COLUMN: Sidebar (Insights) */}
-        <div className="space-y-6">
-          {currentView === 'dashboard' && (
-            <div className="sticky top-24">
-              <Insights refreshTrigger={commits.length} />
-
-              <div className="mt-8 p-4 bg-gradient-to-br from-blue/10 to-mauve/10 border border-blue/20 rounded-lg">
-                <h4 className="font-bold text-sm text-text mb-1">Pro Tip</h4>
-                <p className="text-xs text-subtext0">Drag the effort slider to track your mental energy levels accurately.</p>
-              </div>
-
-              <footer className="mt-8 text-xs text-subtext0 flex flex-wrap gap-x-4 gap-y-2 px-2">
-                <a href="#" className="hover:text-blue">About</a>
-                <a href="#" className="hover:text-blue">Blog</a>
-                <a href="#" className="hover:text-blue">Terms</a>
-                <a href="#" className="hover:text-blue">Privacy</a>
-                <span>© 2026 MindRepo</span>
-              </footer>
-            </div>
-          )}
-
-          {currentView === 'repository' && activeRepo && (
-            <div className="sticky top-24 space-y-4 animate-in slide-in-from-right-4">
-              <div className="bg-mantle border border-surface0 rounded-lg p-4">
-                <h3 className="font-bold text-sm mb-3">About</h3>
-                <p className="text-sm text-subtext0 mb-4">{activeRepo.description || "No description."}</p>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-subtext0">
-                    <BookMarked size={14} />
-                    <span>Readme</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-subtext0">
-                    <div className="w-3.5 h-3.5 rounded-full bg-blue"></div>
-                    <span>TypeScript</span>
-                  </div>
+                  ))}
+                  {repositories.length === 0 && (
+                    <div className="text-xs text-subtext0 p-2 text-center">No repositories found.</div>
+                  )}
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Categories Wrapper */}
+            {currentView === 'dashboard' && (
+              <div className="bg-mantle border border-surface0 rounded-lg p-4 shadow-sm">
+                <h3 className="font-bold text-sm mb-3 text-text">Categories</h3>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.slice(1).map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-all ${selectedCategory === cat
+                        ? 'bg-blue text-base border-blue'
+                        : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
+                        }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CENTER COLUMN: Main Content */}
+          <div className="min-h-[500px]">
+            {currentView === 'dashboard' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-mantle border border-surface0 rounded-lg shadow-lg relative overflow-hidden group">
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue/50 to-transparent"></div>
+                  <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-blue/50 to-transparent opacity-50"></div>
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue/5 rounded-full blur-3xl pointer-events-none"></div>
+                  <CommitForm onAdd={addCommit} />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between bg-mantle border border-surface0 rounded-lg p-2 shadow-sm">
+                    <div className="flex items-center gap-3 px-2 flex-1">
+                      <Search size={16} className="text-subtext0" />
+                      <input
+                        type="text"
+                        placeholder="Filter by commit message..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-transparent border-none focus:outline-none text-sm w-full placeholder:text-subtext0 text-text"
+                      />
+                    </div>
+                    <div className="h-6 w-px bg-surface0"></div>
+                    <div className="px-2">
+                      <Filter size={16} className="text-subtext0 cursor-pointer hover:text-text transition-colors" />
+                    </div>
+                  </div>
+
+                  <Timeline
+                    commits={commits}
+                    onDelete={deleteCommit}
+                    onUpdate={updateCommit}
+                  />
+                </div>
+              </div>
+            )}
+
+            {currentView === 'repository' && (
+              <RepoView repository={activeRepo} />
+            )}
+
+            {currentView === 'settings' && (
+              <div className="bg-mantle border border-surface0 rounded-lg p-8 text-center animate-in zoom-in-95 duration-300">
+                <SettingsIcon size={48} className="mx-auto text-surface1 mb-4" />
+                <h2 className="text-xl font-bold text-text mb-2">Settings</h2>
+                <p className="text-subtext0">Configuration options coming soon.</p>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Sidebar (Insights) */}
+          <div className="space-y-6">
+            {currentView === 'dashboard' && (
+              <div className="sticky top-24">
+                <Insights refreshTrigger={commits.length} />
+
+                <div className="mt-8 p-4 bg-gradient-to-br from-blue/10 to-mauve/10 border border-blue/20 rounded-lg">
+                  <h4 className="font-bold text-sm text-text mb-1">Pro Tip</h4>
+                  <p className="text-xs text-subtext0">Drag the effort slider to track your mental energy levels accurately.</p>
+                </div>
+
+                <footer className="mt-8 text-xs text-subtext0 flex flex-wrap gap-x-4 gap-y-2 px-2">
+                  <a href="#" className="hover:text-blue">About</a>
+                  <a href="#" className="hover:text-blue">Blog</a>
+                  <a href="#" className="hover:text-blue">Terms</a>
+                  <a href="#" className="hover:text-blue">Privacy</a>
+                  <span>© 2026 MindRepo</span>
+                </footer>
+              </div>
+            )}
+
+            {currentView === 'repository' && activeRepo && (
+              <div className="sticky top-24 space-y-4 animate-in slide-in-from-right-4">
+                <div className="bg-mantle border border-surface0 rounded-lg p-4">
+                  <h3 className="font-bold text-sm mb-3">About</h3>
+                  <p className="text-sm text-subtext0 mb-4">{activeRepo.description || "No description."}</p>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-subtext0">
+                      <BookMarked size={14} />
+                      <span>Readme</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-subtext0">
+                      <div className="w-3.5 h-3.5 rounded-full bg-blue"></div>
+                      <span>TypeScript</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* NEW REPO MODAL */}
       {isRepoModalOpen && (

@@ -1,57 +1,61 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Commit, NewCommit } from '../types';
-
-const API_URL = 'http://localhost:8000';
+import { api } from '../api';
 
 export const useCommits = () => {
     const [commits, setCommits] = useState<Commit[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const fetchCommits = async () => {
+    const fetchCommits = useCallback(async (search?: string, category?: string) => {
+        setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/commits`);
-            if (response.ok) {
-                const data = await response.json();
-                setCommits(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch commits:', error);
+            const data = await api.fetchCommits(search, category);
+            setCommits(data);
+            setError(null);
+        } catch (err) {
+            setError('Failed to fetch commits');
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCommits();
-    }, []);
+    }, [fetchCommits]);
 
     const addCommit = async (newCommit: NewCommit) => {
         try {
-            const response = await fetch(`${API_URL}/commits`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newCommit),
-            });
-            if (response.ok) {
-                // Refresh entire list to ensure sync (or append result)
-                fetchCommits();
-            }
-        } catch (error) {
-            console.error('Failed to add commit:', error);
+            await api.createCommit(newCommit);
+            fetchCommits(); // Refresh list
+        } catch (err) {
+            console.error(err);
+            setError('Failed to add commit');
         }
     };
 
-    const deleteCommit = async (id: string) => {
+    const updateCommit = async (id: number, commit: Partial<NewCommit>) => {
         try {
-            const response = await fetch(`${API_URL}/commits/${id}`, {
-                method: 'DELETE',
-            });
-            if (response.ok) {
-                fetchCommits();
-            }
-        } catch (error) {
-            console.error('Failed to delete commit:', error);
+            await api.updateCommit(id, commit);
+            fetchCommits();
+        } catch (err) {
+            console.error(err);
+            setError('Failed to update commit');
         }
     };
 
-    return { commits, addCommit, deleteCommit };
+    const deleteCommit = async (id: number) => { // Changed id to number
+        try {
+            await api.deleteCommit(id);
+            fetchCommits();
+        } catch (err) {
+            console.error(err);
+            setError('Failed to delete commit');
+        }
+    };
+
+    const refresh = (search?: string, category?: string) => fetchCommits(search, category);
+
+    return { commits, loading, error, addCommit, updateCommit, deleteCommit, refresh };
 };

@@ -50,22 +50,17 @@ function App() {
 
   const handleCreateRepo = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Attempting to create repo:", newRepoName);
-    if (!newRepoName) {
-      console.log("Repo name is empty, aborting.");
-      return;
-    }
+    if (!newRepoName) return;
 
     setIsSubmitting(true);
     try {
       await createRepository(newRepoName, newRepoDesc);
-      console.log("Repo created successfully");
       setIsRepoModalOpen(false);
       setNewRepoName('');
       setNewRepoDesc('');
     } catch (error) {
       console.error("Failed to create repo:", error);
-      alert("Failed to create repository. Check console for details.");
+      alert("Failed to create repository.");
     } finally {
       setIsSubmitting(false);
     }

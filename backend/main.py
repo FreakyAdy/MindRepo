@@ -1,15 +1,15 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from sqlalchemy import desc
 from fastapi.middleware.cors import CORSMiddleware
-from . import crud, models, schemas, database, insight_engine
+from typing import List, Optional
+import models, schemas, crud, insight_engine
+from database import SessionLocal, engine
 
-# Create tables
-models.Base.metadata.create_all(bind=database.engine)
+models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="MindRepo API", description="Version Control for Human Decisions")
+app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,85 +18,90 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Dependency
 def get_db():
-    db = database.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+# --- Repositories ---
+@app.post("/repositories", response_model=schemas.Repository)
+def create_repository(repo: schemas.RepositoryCreate, db: Session = Depends(get_db)):
+    db_repo = db.query(models.Repository).filter(models.Repository.name == repo.name).first()
+    if db_repo:
+        raise HTTPException(status_code=400, detail="Repository already exists")
+    new_repo = models.Repository(**repo.dict())
+    db.add(new_repo)
+    db.commit()
+    db.refresh(new_repo)
+    return new_repo
+
+@app.get("/repositories", response_model=List[schemas.Repository])
+def read_repositories(db: Session = Depends(get_db)):
+    return db.query(models.Repository).all()
+
+# --- Commits ---
 @app.post("/commits", response_model=schemas.Commit)
 def create_commit(commit: schemas.CommitCreate, db: Session = Depends(get_db)):
-    if len(commit.title) < 5:
-        raise HTTPException(status_code=400, detail="Title must be at least 5 characters long")
-    
-    # Invalidate insights cache implicitly by new data (re-gen on request)
     return crud.create_commit(db=db, commit=commit)
 
 @app.get("/commits", response_model=List[schemas.Commit])
 def read_commits(
     skip: int = 0, 
-    limit: int = 100,
+    limit: int = 100, 
     category: Optional[str] = None,
     search: Optional[str] = None,
-    from_date: Optional[str] = Query(None, alias="from"),
-    to_date: Optional[str] = Query(None, alias="to"),
+    repository_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    commits = crud.get_commits(
-        db, skip=skip, limit=limit, 
-        category=category, search=search, 
-        from_date=from_date, to_date=to_date
-    )
-    return commits
+    # Custom filter logic here or move to CRUD
+    query = db.query(models.Commit)
+    
+    if category:
+        query = query.filter(models.Commit.category == category)
+    
+    if search:
+        query = query.filter(models.Commit.title.contains(search) | models.Commit.description.contains(search))
 
-@app.get("/commits/{commit_id}", response_model=schemas.Commit)
-def read_commit(commit_id: int, db: Session = Depends(get_db)):
+    if repository_id:
+        query = query.filter(models.Commit.repository_id == repository_id)
+
+    return query.order_by(desc(models.Commit.timestamp)).offset(skip).limit(limit).all()
+
+@app.put("/commits/{commit_id}", response_model=schemas.Commit)
+def update_commit(commit_id: int, commit: schemas.CommitUpdate, db: Session = Depends(get_db)):
     db_commit = crud.get_commit(db, commit_id=commit_id)
     if db_commit is None:
         raise HTTPException(status_code=404, detail="Commit not found")
+    
+    # Update fields
+    for key, value in commit.dict(exclude_unset=True).items():
+        setattr(db_commit, key, value)
+    
+    db.commit()
+    db.refresh(db_commit)
     return db_commit
 
-@app.put("/commits/{commit_id}", response_model=schemas.Commit)
-def update_commit(commit_id: int, commit_update: schemas.CommitUpdate, db: Session = Depends(get_db)):
-    db_commit = crud.update_commit(db, commit_id, commit_update)
-    if db_commit is None:
-        raise HTTPException(status_code=404, detail="Commit not found")
-    return db_commit
-
-@app.delete("/commits/{commit_id}", response_model=schemas.Commit)
+@app.delete("/commits/{commit_id}")
 def delete_commit(commit_id: int, db: Session = Depends(get_db)):
-    db_commit = crud.delete_commit(db, commit_id)
+    db_commit = crud.get_commit(db, commit_id=commit_id)
     if db_commit is None:
         raise HTTPException(status_code=404, detail="Commit not found")
-    return db_commit
+    crud.delete_commit(db=db, commit_id=commit_id)
+    return {"message": "Commit deleted"}
 
+# --- Insights ---
 @app.get("/insights", response_model=schemas.Insight)
-def read_insights(db: Session = Depends(get_db)):
-    # Simple caching strategy: 
-    # Try to get latest insight. If < 5 mins old, return it. Else generate new.
-    # For MVP: Just generate fresh every time we hit refresh, or return latest.
-    # User requirement: "Cache insights and invalidate on commit changes"
-    # Implementing simpler logic: Always get latest DB entry. If empty, generate.
-    latest = crud.get_latest_insights(db)
-    if not latest:
-        # Generate initial
-        new_insight_data = insight_engine.generate_insights(db)
-        if new_insight_data:
-            latest = crud.create_insight(db, new_insight_data)
-        else:
-            raise HTTPException(status_code=404, detail="Not enough data for insights")
-            
-    return latest
+def get_latest_insight(db: Session = Depends(get_db)):
+    insight = crud.get_latest_insight(db)
+    if not insight:
+        # Generate initial insight if none exists
+        commits = crud.get_commits(db)
+        return insight_engine.generate_insight(db, commits)
+    return insight
 
 @app.post("/insights/refresh", response_model=schemas.Insight)
-def refresh_insights(db: Session = Depends(get_db)):
-    new_insight_data = insight_engine.generate_insights(db)
-    if not new_insight_data:
-         # Fallback empty
-         return schemas.Insight(
-             id=0, summary="No Data", reasoning=[], severity="low", 
-             related_commits=[], generated_at=""
-         )
-    return crud.create_insight(db, new_insight_data)
+def refresh_insight(db: Session = Depends(get_db)):
+    commits = crud.get_commits(db)
+    return insight_engine.generate_insight(db, commits)

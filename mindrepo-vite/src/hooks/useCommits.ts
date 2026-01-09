@@ -1,61 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Commit, NewCommit } from '../types';
-import { api } from '../api';
+import { fetchCommits, createCommit, deleteCommit as apiDeleteCommit, updateCommit as apiUpdateCommit, fetchRepositories, createRepository as apiCreateRepository } from '../api';
+import type { Commit, NewCommit, Repository } from '../types';
 
-export const useCommits = () => {
+export function useCommits() {
     const [commits, setCommits] = useState<Commit[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [repositories, setRepositories] = useState<Repository[]>([]);
 
-    const fetchCommits = useCallback(async (search?: string, category?: string) => {
-        setLoading(true);
-        try {
-            const data = await api.fetchCommits(search, category);
-            setCommits(data);
-            setError(null);
-        } catch (err) {
-            setError('Failed to fetch commits');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    const refresh = useCallback(async (search?: string, category?: string, repository_id?: number) => {
+        const data = await fetchCommits(search, category, repository_id);
+        setCommits(data);
+    }, []);
+
+    const refreshRepos = useCallback(async () => {
+        const data = await fetchRepositories();
+        setRepositories(data);
     }, []);
 
     useEffect(() => {
-        fetchCommits();
-    }, [fetchCommits]);
+        refresh();
+        refreshRepos();
+    }, [refresh, refreshRepos]);
 
-    const addCommit = async (newCommit: NewCommit) => {
-        try {
-            await api.createCommit(newCommit);
-            fetchCommits(); // Refresh list
-        } catch (err) {
-            console.error(err);
-            setError('Failed to add commit');
-        }
+    const addCommit = async (commit: NewCommit) => {
+        const newCommit = await createCommit(commit);
+        setCommits((prev) => [newCommit, ...prev]);
+    };
+
+    const deleteCommit = async (id: number) => {
+        await apiDeleteCommit(id);
+        setCommits((prev) => prev.filter((c) => c.id !== id));
     };
 
     const updateCommit = async (id: number, commit: Partial<NewCommit>) => {
-        try {
-            await api.updateCommit(id, commit);
-            fetchCommits();
-        } catch (err) {
-            console.error(err);
-            setError('Failed to update commit');
-        }
+        const updated = await apiUpdateCommit(id, commit);
+        setCommits(prev => prev.map(c => c.id === id ? updated : c));
     };
 
-    const deleteCommit = async (id: number) => { // Changed id to number
-        try {
-            await api.deleteCommit(id);
-            fetchCommits();
-        } catch (err) {
-            console.error(err);
-            setError('Failed to delete commit');
-        }
+    const createRepository = async (name: string, description?: string) => {
+        const newRepo = await apiCreateRepository(name, description);
+        setRepositories(prev => [...prev, newRepo]);
+        return newRepo;
     };
 
-    const refresh = (search?: string, category?: string) => fetchCommits(search, category);
-
-    return { commits, loading, error, addCommit, updateCommit, deleteCommit, refresh };
-};
+    return { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, refresh, refreshRepos };
+}

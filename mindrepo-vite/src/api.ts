@@ -1,55 +1,55 @@
-import type { Commit, NewCommit, Insight } from './types';
+import { Commit, NewCommit, Repository } from './types';
 
 const API_URL = 'http://localhost:8000';
 
-export const api = {
-    fetchCommits: async (search?: string, category?: string, limit: number = 20): Promise<Commit[]> => {
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        if (category && category !== 'All') params.append('category', category);
-        if (limit) params.append('limit', limit.toString());
+export async function fetchCommits(search?: string, category?: string, repository_id?: number): Promise<Commit[]> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (category) params.append('category', category);
+    if (repository_id) params.append('repository_id', repository_id.toString());
 
-        const res = await fetch(`${API_URL}/commits?${params.toString()}`);
-        if (!res.ok) throw new Error('Failed to fetch commits');
-        return res.json();
-    },
+    const res = await fetch(`${API_URL}/commits?${params.toString()}`);
+    return res.json();
+}
 
-    createCommit: async (commit: NewCommit): Promise<Commit> => {
-        const res = await fetch(`${API_URL}/commits`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(commit),
-        });
-        if (!res.ok) throw new Error('Failed to create commit');
-        return res.json();
-    },
+export async function createCommit(commit: NewCommit): Promise<Commit> {
+    const res = await fetch(`${API_URL}/commits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(commit),
+    });
+    return res.json();
+}
 
-    updateCommit: async (id: number, commit: Partial<NewCommit>): Promise<Commit> => {
-        const res = await fetch(`${API_URL}/commits/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(commit),
-        });
-        if (!res.ok) throw new Error('Failed to update commit');
-        return res.json();
-    },
+export async function deleteCommit(id: number): Promise<void> {
+    await fetch(`${API_URL}/commits/${id}`, { method: 'DELETE' });
+}
 
-    deleteCommit: async (id: number): Promise<void> => {
-        const res = await fetch(`${API_URL}/commits/${id}`, {
-            method: 'DELETE',
-        });
-        if (!res.ok) throw new Error('Failed to delete commit');
-    },
+export async function updateCommit(id: number, commit: Partial<NewCommit>): Promise<Commit> {
+    const res = await fetch(`${API_URL}/commits/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(commit),
+    });
+    return res.json();
+}
 
-    fetchInsights: async (): Promise<Insight> => {
-        const res = await fetch(`${API_URL}/insights`);
-        if (!res.ok) throw new Error('Failed to fetch insights');
-        return res.json();
-    },
+export async function fetchRepositories(): Promise<Repository[]> {
+    const res = await fetch(`${API_URL}/repositories`);
+    return res.json();
+}
 
-    refreshInsights: async (): Promise<Insight> => {
-        const res = await fetch(`${API_URL}/insights/refresh`, { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to refresh insights');
-        return res.json();
-    }
-};
+export async function createRepository(name: string, description?: string): Promise<Repository> {
+    const res = await fetch(`${API_URL}/repositories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description }),
+    });
+    if (!res.ok) throw new Error('Failed to create repository');
+    return res.json();
+}
+
+export async function fetchInsights() {
+    const res = await fetch(`${API_URL}/insights`);
+    return res.json();
+}

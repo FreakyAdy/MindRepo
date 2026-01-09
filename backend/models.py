@@ -1,39 +1,36 @@
-from sqlalchemy import Column, Integer, String, Text, Float
-import json
-from .database import Base
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from database import Base
+from datetime import datetime
+
+class Repository(Base):
+    __tablename__ = "repositories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    commits = relationship("Commit", back_populates="repository")
 
 class Commit(Base):
     __tablename__ = "commits"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    description = Column(Text, nullable=True)
+    description = Column(String, nullable=True)
     category = Column(String, index=True)
-    effort = Column(Integer, default=1) # 1-5 scale
-    timestamp = Column(String) # ISO format
+    effort = Column(Integer, default=1)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    repository_id = Column(Integer, ForeignKey("repositories.id"), nullable=True)
+
+    repository = relationship("Repository", back_populates="commits")
 
 class Insight(Base):
     __tablename__ = "insights"
 
     id = Column(Integer, primary_key=True, index=True)
-    summary = Column(String)
-    reasoning_json = Column(Text) # JSON list of strings
-    severity = Column(String) # low, medium, high
-    related_commits_json = Column(Text) # JSON list of commit IDs
-    generated_at = Column(String)
-
-    @property
-    def reasoning(self):
-        return json.loads(self.reasoning_json) if self.reasoning_json else []
-    
-    @reasoning.setter
-    def reasoning(self, value):
-        self.reasoning_json = json.dumps(value)
-
-    @property
-    def related_commits(self):
-        return json.loads(self.related_commits_json) if self.related_commits_json else []
-
-    @related_commits.setter
-    def related_commits(self, value):
-        self.related_commits_json = json.dumps(value)
+    summary = Column(Text)
+    severity = Column(String)  # low, medium, high
+    generated_at = Column(DateTime, default=datetime.utcnow)
+    reasoning = Column(Text) # JSON string of bullet points

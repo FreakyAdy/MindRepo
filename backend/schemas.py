@@ -1,12 +1,30 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional, List
+from datetime import datetime
 
+# --- Repository Schemas ---
+class RepositoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class RepositoryCreate(RepositoryBase):
+    pass
+
+class Repository(RepositoryBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+# --- Commit Schemas ---
 class CommitBase(BaseModel):
     title: str
     description: Optional[str] = None
     category: str
-    effort: int = 1
-    timestamp: Optional[str] = None
+    effort: Optional[int] = 1
+    timestamp: Optional[datetime] = None
+    repository_id: Optional[int] = None
 
 class CommitCreate(CommitBase):
     pass
@@ -16,22 +34,27 @@ class CommitUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     effort: Optional[int] = None
+    repository_id: Optional[int] = None
 
 class Commit(CommitBase):
     id: int
+    repository: Optional[Repository] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
+# --- Insight Schemas ---
 class InsightBase(BaseModel):
     summary: str
-    reasoning: List[str]
     severity: str
-    related_commits: List[int]
-    generated_at: str
+    reasoning: List[str]
+
+class InsightCreate(InsightBase):
+    pass
 
 class Insight(InsightBase):
     id: int
+    generated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True

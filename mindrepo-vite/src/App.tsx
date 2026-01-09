@@ -5,7 +5,8 @@ import { Timeline } from './components/Timeline';
 import { Insights } from './components/Insights';
 import { RepoView } from './components/RepoView';
 import { useCommits } from './hooks/useCommits';
-import { BookMarked, Search, Filter, GitBranch, Calendar, Settings as SettingsIcon } from 'lucide-react';
+import { BookMarked, Search, Filter, GitBranch, Calendar, Settings as SettingsIcon, Plus } from 'lucide-react';
+import type { Repository } from './types';
 
 // View Types
 type View = 'dashboard' | 'repository' | 'settings';
@@ -22,19 +23,34 @@ function useDebounceValue<T>(value: T, delay: number): T {
 const CATEGORIES = ['All', 'Coding', 'Learning', 'Health', 'Meeting', 'Planning', 'Other'];
 
 function App() {
-  const { commits, addCommit, deleteCommit, updateCommit, refresh } = useCommits();
+  const { commits, repositories, addCommit, deleteCommit, updateCommit, createRepository, refresh } = useCommits();
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [activeRepo, setActiveRepo] = useState<Repository | undefined>(undefined);
 
   // Dashboard Specific State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const debouncedSearch = useDebounceValue(searchTerm, 500);
 
+  // New Repo Modal State
+  const [isRepoModalOpen, setIsRepoModalOpen] = useState(false);
+  const [newRepoName, setNewRepoName] = useState('');
+  const [newRepoDesc, setNewRepoDesc] = useState('');
+
   useEffect(() => {
     if (currentView === 'dashboard') {
       refresh(debouncedSearch, selectedCategory === 'All' ? undefined : selectedCategory);
     }
   }, [debouncedSearch, selectedCategory, refresh, currentView]);
+
+  const handleCreateRepo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRepoName) return;
+    await createRepository(newRepoName, newRepoDesc);
+    setIsRepoModalOpen(false);
+    setNewRepoName('');
+    setNewRepoDesc('');
+  };
 
   return (
     <Layout view={currentView} onNavigate={(v) => setCurrentView(v as View)}>
@@ -48,13 +64,13 @@ function App() {
               icon={<Calendar size={16} />}
               label="Dashboard"
               active={currentView === 'dashboard'}
-              onClick={() => setCurrentView('dashboard')}
+              onClick={() => { setCurrentView('dashboard'); setActiveRepo(undefined); }}
             />
             <NavItem
               icon={<GitBranch size={16} />}
               label="Repositories"
-              active={currentView === 'repository'}
-              onClick={() => setCurrentView('repository')}
+              active={currentView === 'repository' && !activeRepo}
+              onClick={() => { setCurrentView('repository'); setActiveRepo(undefined); }}
             />
             <NavItem
               icon={<SettingsIcon size={16} />}
@@ -67,15 +83,31 @@ function App() {
           {/* Top Repos */}
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <span className="font-bold text-sm text-text">Top Repositories</span>
-              <button className="bg-green text-base px-2 py-0.5 rounded text-xs font-bold hover:opacity-90 transition-opacity">New</button>
+              <span className="font-bold text-sm text-text">Repositories</span>
+              <button
+                onClick={() => setIsRepoModalOpen(true)}
+                className="bg-green hover:bg-green/90 text-crust text-xs px-2 py-0.5 rounded font-bold transition-all"
+              >
+                New
+              </button>
             </div>
 
-            <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden">
+            <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
               <div className="p-2 space-y-1">
-                <RepoItem name="mindrepo/ideas" onClick={() => setCurrentView('repository')} />
-                <RepoItem name="mindrepo/journal" onClick={() => setCurrentView('repository')} />
-                <RepoItem name="mindrepo/learning" onClick={() => setCurrentView('repository')} />
+                {repositories.map(repo => (
+                  <RepoItem
+                    key={repo.id}
+                    name={repo.name}
+                    active={activeRepo?.id === repo.id}
+                    onClick={() => {
+                      setActiveRepo(repo);
+                      setCurrentView('repository');
+                    }}
+                  />
+                ))}
+                {repositories.length === 0 && (
+                  <div className="text-xs text-subtext0 p-2 text-center">No repositories found.</div>
+                )}
               </div>
             </div>
           </div>
@@ -90,8 +122,8 @@ function App() {
                     key={cat}
                     onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
                     className={`text-xs px-2.5 py-1 rounded-full border transition-all ${selectedCategory === cat
-                      ? 'bg-blue text-base border-blue'
-                      : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
+                        ? 'bg-blue text-base border-blue'
+                        : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
                       }`}
                   >
                     {cat}
@@ -139,7 +171,7 @@ function App() {
           )}
 
           {currentView === 'repository' && (
-            <RepoView />
+            <RepoView repository={activeRepo} />
           )}
 
           {currentView === 'settings' && (
@@ -172,11 +204,11 @@ function App() {
             </div>
           )}
 
-          {currentView === 'repository' && (
-            <div className="sticky top-24 space-y-4">
+          {currentView === 'repository' && activeRepo && (
+            <div className="sticky top-24 space-y-4 animate-in slide-in-from-right-4">
               <div className="bg-mantle border border-surface0 rounded-lg p-4">
                 <h3 className="font-bold text-sm mb-3">About</h3>
-                <p className="text-sm text-subtext0 mb-4">MindRepo repository for tracking daily thoughts and commits.</p>
+                <p className="text-sm text-subtext0 mb-4">{activeRepo.description || "No description."}</p>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-subtext0">
@@ -192,19 +224,68 @@ function App() {
             </div>
           )}
         </div>
-
       </div>
+
+      {/* NEW REPO MODAL */}
+      {isRepoModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-crust/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-mantle border border-surface0 rounded-lg p-6 w-full max-w-md shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-text mb-1">Create a new repository</h2>
+            <p className="text-sm text-subtext0 mb-4">A repository contains all your commits and history.</p>
+
+            <form onSubmit={handleCreateRepo} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-text mb-1">Name <span className="text-red">*</span></label>
+                <input
+                  type="text"
+                  required
+                  value={newRepoName}
+                  onChange={e => setNewRepoName(e.target.value)}
+                  placeholder="e.g. mindrepo/ideas"
+                  className="w-full bg-surface0 border border-surface1 rounded py-2 px-3 text-text focus:border-blue focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={newRepoDesc}
+                  onChange={e => setNewRepoDesc(e.target.value)}
+                  placeholder="Short description of this repo"
+                  className="w-full bg-surface0 border border-surface1 rounded py-2 px-3 text-text focus:border-blue focus:outline-none"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRepoModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-subtext0 hover:text-text transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green hover:bg-green/90 text-crust font-bold rounded text-sm transition-colors"
+                >
+                  Create Repository
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 }
 
-// Helper Components for Cleaner Main App
+// Helper Components
 const NavItem = ({ icon, label, active, onClick }: { icon: any, label: string, active: boolean, onClick: () => void }) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${active
-      ? 'bg-surface0 text-text font-bold shadow-sm'
-      : 'text-subtext0 hover:bg-surface0/50 hover:text-text'
+        ? 'bg-surface0 text-text font-bold shadow-sm'
+        : 'text-subtext0 hover:bg-surface0/50 hover:text-text'
       }`}
   >
     {icon}
@@ -213,13 +294,14 @@ const NavItem = ({ icon, label, active, onClick }: { icon: any, label: string, a
   </button>
 );
 
-const RepoItem = ({ name, onClick }: { name: string, onClick: () => void }) => (
+const RepoItem = ({ name, active, onClick }: { name: string, active: boolean, onClick: () => void }) => (
   <div
     onClick={onClick}
-    className="flex items-center gap-2 cursor-pointer p-2 rounded-md hover:bg-surface0 transition-colors group"
+    className={`flex items-center gap-2 cursor-pointer p-2 rounded-md transition-colors group ${active ? 'bg-surface0/80 border border-surface1' : 'hover:bg-surface0 border border-transparent'
+      }`}
   >
-    <BookMarked size={14} className="text-subtext0 group-hover:text-blue transition-colors" />
-    <span className="text-sm font-medium text-text group-hover:text-blue transition-colors">{name}</span>
+    <BookMarked size={14} className={`${active ? 'text-blue' : 'text-subtext0'} group-hover:text-blue transition-colors`} />
+    <span className={`text-sm font-medium ${active ? 'text-text' : 'text-subtext0'} group-hover:text-text transition-colors truncate`}>{name}</span>
   </div>
 );
 

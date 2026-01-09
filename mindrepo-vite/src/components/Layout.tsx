@@ -1,5 +1,4 @@
 import React from 'react';
-import { Menu, Command, Bell, Plus, Github } from 'lucide-react';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -7,52 +6,21 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
-        <div className="app-container">
-            {/* GitHub-like Header */}
-            <header className="app-header">
-                <div className="header-content">
-                    <div className="header-left">
-                        <button className="menu-btn">
-                            <Menu size={20} />
-                        </button>
-                        <div className="logo-section">
-                            <Github size={32} fill="currentColor" />
-                            <span>Dashboard</span>
+        <div className="min-h-screen bg-base text-text font-sans">
+            <header className="bg-mantle border-b border-surface0 sticky top-0 z-50">
+                <div className="max-w-[1280px] mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-blue flex items-center justify-center">
+                            <span className="text-base font-bold">M</span>
                         </div>
+                        <span className="font-bold text-lg tracking-tight">MindRepo</span>
                     </div>
-
-                    <div className="search-bar">
-                        <button className="search-input-wrapper">
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Command size={14} /> Type <kbd className="kbd-shortcut">/</kbd> to search
-                            </span>
-                        </button>
-                    </div>
-
-                    <div className="header-right">
-                        <div style={{ height: '20px', width: '1px', backgroundColor: 'var(--border-color)' }}></div>
-
-                        <button className="icon-btn">
-                            <Plus size={20} />
-                        </button>
-
-                        <button className="icon-btn" style={{ position: 'relative' }}>
-                            <Bell size={16} />
-                            <span style={{
-                                position: 'absolute', top: 0, right: 0, width: '8px', height: '8px',
-                                backgroundColor: 'var(--blue)', borderRadius: '50%', border: '2px solid var(--mantle)'
-                            }}></span>
-                        </button>
-
-                        <div className="avatar">
-                            {/* Avatar Placeholder */}
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-surface0 border border-surface1"></div>
                     </div>
                 </div>
             </header>
-
-            {/* Main Content Area */}
-            <main className="main-container">
+            <main className="max-w-[1280px] mx-auto px-4 py-8">
                 {children}
             </main>
         </div>

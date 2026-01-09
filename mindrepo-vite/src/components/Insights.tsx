@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import type { Insight } from '../types'; // Updated type
+import type { Insight } from '../types';
 import { api } from '../api';
-import { Zap, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 
 interface InsightsProps {
-    // We fetch insights internally or pass them? Logic says fetch from API. 
-    // passing trigger to refresh might be good.
     refreshTrigger?: number;
 }
 
@@ -44,60 +42,58 @@ export const Insights: React.FC<InsightsProps> = ({ refreshTrigger }) => {
 
     if (loading && !insight) {
         return (
-            <div className="insights-card p-4 animate-pulse">
-                <div className="h-4 bg-[var(--surface0)] rounded w-1/2 mb-2"></div>
-                <div className="h-8 bg-[var(--surface0)] rounded w-full"></div>
+            <div className="bg-mantle border border-surface0 rounded-lg p-4 animate-pulse">
+                <div className="h-4 bg-surface0 rounded w-1/2 mb-3"></div>
+                <div className="h-16 bg-surface0 rounded w-full"></div>
             </div>
         );
     }
 
     if (!insight) return null;
 
+    const severityColor =
+        insight.severity === 'high' ? 'text-red bg-red/10 border-red/20' :
+            insight.severity === 'medium' ? 'text-yellow bg-yellow/10 border-yellow/20' :
+                'text-green bg-green/10 border-green/20';
+
     return (
-        <div className="insights-card">
-            <div className="insights-header flex justify-between items-center">
-                <span>MindRepo Intelligence</span>
-                <button onClick={handleRefresh} disabled={loading} className="text-[var(--subtext0)] hover:text-[var(--text)]">
+        <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-surface0 flex justify-between items-center bg-surface0/20">
+                <span className="font-bold text-sm">MindRepo Intelligence</span>
+                <button onClick={handleRefresh} disabled={loading} className="text-subtext0 hover:text-text transition-colors">
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                 </button>
             </div>
-            <div className="insights-body">
-                <div className="timeline-line"></div>
 
-                <div className="insight-item">
-                    <div className={`insight-dot bg-[var(--${insight.severity === 'high' ? 'red' : insight.severity === 'medium' ? 'yellow' : 'green'})]`}></div>
+            <div className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${severityColor}`}>
+                        {insight.severity}
+                    </span>
+                    <span className="text-xs text-subtext0">{new Date(insight.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
 
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-bold px-1.5 rounded uppercase tracking-wider ${insight.severity === 'high' ? 'bg-[var(--red)] text-[var(--base)]' :
-                            insight.severity === 'medium' ? 'bg-[var(--yellow)] text-[var(--base)]' :
-                                'bg-[var(--green)] text-[var(--base)]'
-                            }`}>
-                            {insight.severity}
-                        </span>
-                        <span className="text-xs text-muted">{new Date(insight.generated_at).toLocaleTimeString()}</span>
-                    </div>
+                <p className="font-bold text-text mb-3 leading-snug">{insight.summary}</p>
 
-                    <p className="text-sm font-bold text-[var(--text)] mb-2">{insight.summary}</p>
-
+                <div className="bg-surface0/30 rounded p-3">
                     <button
                         onClick={() => setShowExplain(!showExplain)}
-                        className="text-xs flex items-center gap-1 text-[var(--blue)] hover:underline mb-2"
+                        className="w-full flex justify-between items-center text-xs font-medium text-blue hover:text-blue/80 transition-colors"
                     >
-                        {showExplain ? "Hide reasoning" : "Explain why"}
-                        {showExplain ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        <span>{showExplain ? "Hide Analysis" : "Show Analysis"}</span>
+                        {showExplain ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
 
                     {showExplain && (
-                        <ul className="text-xs text-[var(--subtext0)] list-disc pl-4 space-y-1 mb-2 bg-[var(--mantle)] p-2 rounded">
+                        <ul className="mt-3 text-sm text-subtext0 list-disc pl-4 space-y-1">
                             {insight.reasoning.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                     )}
                 </div>
 
-                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-                    <div className="text-xs font-bold text-muted flex items-center gap-1">
-                        <Zap size={12} /> Powered by SimpleLogic™
-                    </div>
+                <div className="mt-4 pt-3 border-t border-surface0 flex items-center gap-1.5 text-xs font-medium text-subtext1 opacity-75">
+                    <Zap size={12} className="fill-current" />
+                    <span>Powered by SimpleLogic™</span>
                 </div>
             </div>
         </div>

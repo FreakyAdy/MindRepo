@@ -17,12 +17,9 @@ export const CommitForm: React.FC<CommitFormProps> = ({ onAdd }) => {
         e.preventDefault();
         if (!description.trim()) return;
 
-        // "Ask anything" vibe: first line is title
         const lines = description.trim().split('\n');
         let title = lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '');
-
-        // Fallback if title is too short, use random or just the text
-        if (title.length < 5) title = (title + ".....").substring(0, 10); // Hacky quick fix for MVP validation
+        if (title.length < 5) title = (title + ".....").substring(0, 10);
 
         onAdd({
             title,
@@ -37,53 +34,51 @@ export const CommitForm: React.FC<CommitFormProps> = ({ onAdd }) => {
     };
 
     return (
-        <div className="commit-form-card">
+        <div className="bg-mantle border border-surface0 rounded-lg shadow-sm">
             <form onSubmit={handleSubmit}>
-                <div style={{ padding: '0 1rem 0.5rem', display: 'flex', gap: '1rem', alignItems: 'center', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-                    {/* Category & Effort inputs embedded in top of card for smoother UX */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className="px-4 pt-2 pb-2 flex gap-4 items-center border-b border-surface0 mb-2">
+                    <div className="flex items-center gap-2">
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="text-xs bg-[var(--surface0)] text-[var(--text)] rounded p-1 border border-[var(--surface1)] focus:outline-none"
+                            className="text-xs bg-surface0 text-text rounded p-1.5 border border-surface1 focus:outline-none focus:border-blue transition-colors cursor-pointer"
                         >
                             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Gauge size={14} className="text-muted" />
+                    <div className="flex items-center gap-2" title={`Effort Level: ${effort}/5`}>
+                        <Gauge size={14} className="text-subtext0" />
                         <input
                             type="range" min="1" max="5" step="1"
                             value={effort}
                             onChange={(e) => setEffort(parseInt(e.target.value))}
-                            className="w-24 accent-[var(--blue)] h-1 bg-[var(--surface1)] rounded-lg appearance-none cursor-pointer"
-                            title={`Effort: ${effort}`}
+                            className="w-24 h-1 bg-surface1 rounded-lg appearance-none cursor-pointer accent-blue"
                         />
-                        <span className="text-xs text-muted">{effort}/5</span>
+                        <span className="text-xs text-subtext0 font-mono w-6">{effort}/5</span>
                     </div>
                 </div>
 
                 <textarea
-                    className="commit-textarea"
-                    placeholder="What did you do? (Minimum 5 chars for title)"
+                    className="w-full bg-transparent text-text p-4 min-h-[100px] focus:outline-none resize-y placeholder:text-subtext0"
+                    placeholder="What did you do? (First line becomes title)"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    style={{ borderTop: 'none', borderRadius: '0' }}
                 />
 
-                <div className="form-actions">
-                    <div className="flex-center">
-                        <button type="button" className="action-btn">
+                <div className="p-2 flex justify-between items-center bg-surface0/30 rounded-b-lg">
+                    <div className="flex items-center px-2">
+                        <button type="button" className="text-subtext0 hover:text-text transition-colors p-1" title="Add tags (Coming soon)">
                             <Hash size={16} />
                         </button>
                     </div>
+
                     <button
                         type="submit"
                         disabled={!description.trim()}
-                        className="action-btn"
+                        className="bg-green text-base px-4 py-1.5 rounded-md font-bold text-sm flex items-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                        <Send size={16} />
+                        Commit <Send size={14} />
                     </button>
                 </div>
             </form>

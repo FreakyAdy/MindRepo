@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import type { ProfileStats, HeatmapPoint } from '../types';
-import { GitCommit, Calendar, Layers, Activity } from 'lucide-react';
+import { GitCommit, Activity } from 'lucide-react';
 
 const LEVEL_COLORS = [
     'bg-surface0', // 0 commits
@@ -213,12 +213,3 @@ export function Profile({ onNavigateRepo }: { onNavigateRepo: (repoId: number) =
     );
 }
 
-const StatBadge = ({ icon, label, value }: { icon: any, label: string, value: string | number }) => (
-    <div className="flex items-center gap-2 bg-mantle border border-surface0 px-3 py-1.5 rounded-full shadow-sm">
-        <div className="text-blue">{icon}</div>
-        <div className="flex flex-col leading-none">
-            <span className="text-[10px] text-subtext0 uppercase font-bold">{label}</span>
-            <span className="text-sm font-bold text-text">{value}</span>
-        </div>
-    </div>
-);

@@ -1,4 +1,4 @@
-import { Commit, NewCommit, Repository } from './types';
+import type { Commit, NewCommit, Repository } from './types';
 
 const API_URL = 'http://localhost:8000';
 
@@ -53,3 +53,19 @@ export async function fetchInsights() {
     const res = await fetch(`${API_URL}/insights`);
     return res.json();
 }
+
+export async function refreshInsights() {
+    const res = await fetch(`${API_URL}/insights/refresh`, { method: 'POST' });
+    return res.json();
+}
+
+export const api = {
+    fetchCommits,
+    createCommit,
+    deleteCommit,
+    updateCommit,
+    fetchRepositories,
+    createRepository,
+    fetchInsights,
+    refreshInsights,
+};

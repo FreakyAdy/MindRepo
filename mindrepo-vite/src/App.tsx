@@ -5,7 +5,7 @@ import { Timeline } from './components/Timeline';
 import { Insights } from './components/Insights';
 import { RepoView } from './components/RepoView';
 import { useCommits } from './hooks/useCommits';
-import { BookMarked, Search, Filter, GitBranch, Calendar, Settings as SettingsIcon, Plus } from 'lucide-react';
+import { BookMarked, Search, Filter, GitBranch, Calendar, Settings as SettingsIcon } from 'lucide-react';
 import type { Repository } from './types';
 
 // View Types
@@ -122,8 +122,8 @@ function App() {
                     key={cat}
                     onClick={() => setSelectedCategory(selectedCategory === cat ? 'All' : cat)}
                     className={`text-xs px-2.5 py-1 rounded-full border transition-all ${selectedCategory === cat
-                        ? 'bg-blue text-base border-blue'
-                        : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
+                      ? 'bg-blue text-base border-blue'
+                      : 'bg-surface0 text-subtext0 border-surface1 hover:border-subtext0'
                       }`}
                   >
                     {cat}
@@ -284,8 +284,8 @@ const NavItem = ({ icon, label, active, onClick }: { icon: any, label: string, a
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${active
-        ? 'bg-surface0 text-text font-bold shadow-sm'
-        : 'text-subtext0 hover:bg-surface0/50 hover:text-text'
+      ? 'bg-surface0 text-text font-bold shadow-sm'
+      : 'text-subtext0 hover:bg-surface0/50 hover:text-text'
       }`}
   >
     {icon}

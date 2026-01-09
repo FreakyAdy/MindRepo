@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Folder, FileCode, FileText, GitBranch, Star, Eye } from 'lucide-react';
+import { FileCode, FileText, GitBranch, Star, Eye } from 'lucide-react';
 import { useCommits } from '../hooks/useCommits';
 import type { Repository, Commit } from '../types';
 

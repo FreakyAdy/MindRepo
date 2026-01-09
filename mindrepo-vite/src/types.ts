@@ -27,4 +27,5 @@ export interface Insight {
   summary: string;
   severity: 'low' | 'medium' | 'high';
   reasoning: string[];
+  generated_at: string;
 }

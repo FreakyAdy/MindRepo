@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Flame, GitBranch } from 'lucide-react';
-import type { NewCommit, Repository } from '../types';
+import { Flame, GitBranch } from 'lucide-react';
+import type { NewCommit } from '../types';
 import { useCommits } from '../hooks/useCommits';
 
 interface CommitFormProps {

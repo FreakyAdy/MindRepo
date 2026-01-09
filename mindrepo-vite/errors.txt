@@ -1,0 +1,9 @@
+﻿src/api.ts(1,10): error TS1484: 'Commit' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/api.ts(1,18): error TS1484: 'NewCommit' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/api.ts(1,29): error TS1484: 'Repository' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/App.tsx(8,85): error TS6133: 'Plus' is declared but its value is never read.
+src/components/CommitForm.tsx(2,10): error TS6133: 'Plus' is declared but its value is never read.
+src/components/CommitForm.tsx(3,26): error TS6196: 'Repository' is declared but never used.
+src/components/Insights.tsx(3,10): error TS2305: Module '"../api"' has no exported member 'api'.
+src/components/Insights.tsx(73,79): error TS2339: Property 'generated_at' does not exist on type 'Insight'.
+src/components/RepoView.tsx(2,10): error TS6133: 'Folder' is declared but its value is never read.

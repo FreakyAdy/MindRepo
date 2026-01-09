@@ -5,9 +5,10 @@ interface LayoutProps {
     children: React.ReactNode;
     view?: string;
     onNavigate?: (view: string) => void;
+    onPlusClick?: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPlusClick }) => {
     return (
         <div className="min-h-screen bg-base text-text font-sans selection:bg-blue/30">
             {/* Header */}
@@ -60,7 +61,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate }) =>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button className="p-1.5 rounded-md text-subtext0 hover:text-text hover:bg-surface0 transition-all border border-transparent hover:border-surface1 relative">
+                        <button
+                            onClick={onPlusClick}
+                            className="p-1.5 rounded-md text-subtext0 hover:text-text hover:bg-surface0 transition-all border border-transparent hover:border-surface1 relative"
+                        >
                             <Plus size={18} />
                         </button>
 

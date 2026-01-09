@@ -8,17 +8,36 @@ export async function fetchCommits(search?: string, category?: string, repositor
     if (category) params.append('category', category);
     if (repository_id) params.append('repository_id', repository_id.toString());
 
-    const res = await fetch(`${API_URL}/commits?${params.toString()}`);
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/commits?${params.toString()}`);
+        if (!res.ok) {
+            console.error(`API Error (fetchCommits): ${res.status} ${res.statusText}`);
+            return [];
+        }
+        return res.json();
+    } catch (error) {
+        console.error("Network Error (fetchCommits):", error);
+        return [];
+    }
 }
 
 export async function createCommit(commit: NewCommit): Promise<Commit> {
-    const res = await fetch(`${API_URL}/commits`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(commit),
-    });
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/commits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(commit),
+        });
+        if (!res.ok) {
+            const errorMsg = await res.text();
+            console.error(`API Error (createCommit): ${res.status} - ${errorMsg}`);
+            throw new Error(`Failed to save commit: ${res.statusText}`);
+        }
+        return res.json();
+    } catch (error) {
+        console.error("Network Error (createCommit):", error);
+        throw error;
+    }
 }
 
 export async function deleteCommit(id: number): Promise<void> {
@@ -35,8 +54,17 @@ export async function updateCommit(id: number, commit: Partial<NewCommit>): Prom
 }
 
 export async function fetchRepositories(): Promise<Repository[]> {
-    const res = await fetch(`${API_URL}/repositories`);
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/repositories`);
+        if (!res.ok) {
+            console.error(`API Error (fetchRepositories): ${res.status} ${res.statusText}`);
+            return [];
+        }
+        return res.json();
+    } catch (error) {
+        console.error("Network Error (fetchRepositories):", error);
+        return [];
+    }
 }
 
 export async function createRepository(name: string, description?: string): Promise<Repository> {

@@ -53,7 +53,11 @@ function App() {
   };
 
   return (
-    <Layout view={currentView} onNavigate={(v) => setCurrentView(v as View)}>
+    <Layout
+      view={currentView}
+      onNavigate={(v) => setCurrentView(v as View)}
+      onPlusClick={() => setIsRepoModalOpen(true)}
+    >
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] gap-8">
 
         {/* LEFT COLUMN: Navigation & Repos */}

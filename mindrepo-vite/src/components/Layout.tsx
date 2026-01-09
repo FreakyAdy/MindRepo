@@ -10,6 +10,8 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPlusClick, onProfileClick }) => {
+    const [showProfileMenu, setShowProfileMenu] = React.useState(false);
+
     return (
         <div className="min-h-screen bg-base text-text font-sans selection:bg-blue/30">
             {/* Header */}
@@ -76,7 +78,53 @@ export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPl
                             <span className="absolute top-1 right-1.5 w-2 h-2 bg-blue rounded-full border-2 border-mantle"></span>
                         </button>
 
-                        <div onClick={onProfileClick} className="w-8 h-8 rounded-full bg-surface0 border border-surface1 ml-2 cursor-pointer hover:border-subtext0 transition-colors bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix')] bg-cover"></div>
+                        <div className="relative">
+                            <div
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="w-8 h-8 rounded-full bg-surface0 border border-surface1 ml-2 cursor-pointer hover:border-text transition-colors bg-[url('https://api.dicebear.com/7.x/avataaars/svg?seed=Aditya')] bg-cover"
+                            ></div>
+
+                            {showProfileMenu && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)}></div>
+                                    <div className="absolute right-0 top-full mt-2 w-64 bg-mantle border border-surface0 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-3 border-b border-surface0">
+                                            <div className="text-sm font-medium text-text">Signed in as</div>
+                                            <div className="font-bold text-text truncate">FreakyAdy</div>
+                                        </div>
+
+                                        <div className="bg-surface0/30 px-3 py-2 border-b border-surface0 flex items-center justify-between cursor-pointer hover:text-blue transition-colors">
+                                            <div className="flex items-center gap-2 text-sm text-text">
+                                                <span>☺</span>
+                                                <span>Set status</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2 space-y-0.5">
+                                            <DropdownItem label="Your profile" onClick={() => { onProfileClick?.(); setShowProfileMenu(false); }} />
+                                            <DropdownItem label="Your repositories" onClick={() => { onNavigate?.('repository'); setShowProfileMenu(false); }} />
+                                            <DropdownItem label="Your projects" />
+                                            <DropdownItem label="Your stars" />
+                                            <DropdownItem label="Your gists" />
+                                            <DropdownItem label="Your organizations" />
+                                            <DropdownItem label="Your enterprises" />
+                                            <DropdownItem label="Your sponsors" />
+                                        </div>
+
+                                        <div className="border-t border-surface0 p-2 space-y-0.5">
+                                            <DropdownItem label="Upgrade" />
+                                            <DropdownItem label="Feature preview" />
+                                            <DropdownItem label="Settings" onClick={() => { onNavigate?.('settings'); setShowProfileMenu(false); }} />
+                                            <DropdownItem label="Copilot usage" />
+                                        </div>
+
+                                        <div className="border-t border-surface0 p-2">
+                                            <DropdownItem label="Sign out" />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -87,3 +135,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, view, onNavigate, onPl
         </div>
     );
 };
+
+const DropdownItem = ({ label, onClick }: { label: string, onClick?: () => void }) => (
+    <button
+        onClick={onClick}
+        className="w-full text-left px-2 py-1.5 text-sm text-text hover:text-white hover:bg-blue rounded-md transition-colors"
+    >
+        {label}
+    </button>
+);

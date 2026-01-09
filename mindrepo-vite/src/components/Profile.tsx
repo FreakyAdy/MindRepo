@@ -46,98 +46,166 @@ export function Profile({ onNavigateRepo }: { onNavigateRepo: (repoId: number) =
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
-            {/* 1. HEADER SECTION */}
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-                <div className="w-24 h-24 rounded-full bg-surface0 border-2 border-surface1 flex items-center justify-center text-4xl">
-                    🧑‍💻
-                </div>
-                <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-text">Aditya</h1>
-                    <p className="text-subtext0 mb-4">Tracking personal growth through commits</p>
+        <div className="animate-in fade-in duration-500 max-w-[1280px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-[296px_1fr] gap-8">
 
-                    <div className="flex flex-wrap gap-4">
-                        <StatBadge icon={<Layers size={16} />} label="Total Repos" value={stats.total_repos} />
-                        <StatBadge icon={<GitCommit size={16} />} label="Total Commits" value={stats.total_commits} />
-                        <StatBadge icon={<Calendar size={16} />} label="Active Days" value={stats.active_days} />
-                        <StatBadge icon={<Activity size={16} />} label="Top Category" value={stats.most_active_category || 'N/A'} />
+                {/* 1. LEFT SIDEBAR (User Profile) */}
+                <div className="md:-mt-8">
+                    <div className="relative group">
+                        <div className="w-[296px] h-[296px] rounded-full overflow-hidden border border-surface1 bg-surface0 shadow-sm relative z-10 transition-transform">
+                            <img
+                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aditya"
+                                alt="Avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div className="absolute bottom-10 right-0 z-20 bg-base border border-surface1 rounded-full p-2 shadow-sm text-subtext0 hover:text-blue cursor-pointer transition-colors">
+                            <span className="text-lg">☺</span>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* 2. ACTIVITY CONTRIBUTION GRAPH */}
-            <div className="bg-mantle border border-surface0 rounded-lg p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-text mb-4">Contribution Activity</h2>
-                <div className="overflow-x-auto pb-2">
-                    <div className="grid grid-flow-col grid-rows-7 gap-1 min-w-[700px] w-full">
-                        {fullHeatmap.map((day) => (
-                            <div
-                                key={day.date}
-                                className={`w-3 h-3 rounded-sm ${LEVEL_COLORS[day.level]} hover:ring-1 hover:ring-text transition-all cursor-pointer relative group`}
-                                title={`${day.date}: ${day.count} commits`}
-                            >
-                                {/* Simple Tooltip */}
+                    <div className="pt-4 pb-4">
+                        <h1 className="text-[26px] font-bold text-text leading-tight">FreakyAdy</h1>
+                        <div className="text-xl text-subtext0 font-light mb-4">freakyady</div>
+
+                        <p className="text-text mb-4">Tracking personal growth through commits. Building MindRepo.</p>
+
+                        <button className="w-full bg-surface0 border border-surface1 text-text font-medium py-1.5 rounded-md hover:bg-surface1 transition-colors text-sm mb-4">
+                            Edit profile
+                        </button>
+
+                        <div className="flex items-center gap-4 text-sm text-subtext0 mb-6">
+                            <div className="flex items-center gap-1 hover:text-blue cursor-pointer">
+                                <span className="font-bold text-text">3</span> followers
                             </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="flex items-center justify-end gap-2 mt-2 text-xs text-subtext0">
-                    <span>Less</span>
-                    <div className="flex gap-1">
-                        {LEVEL_COLORS.map(c => <div key={c} className={`w-3 h-3 rounded-sm ${c}`}></div>)}
-                    </div>
-                    <span>More</span>
-                </div>
-            </div>
+                            <div className="flex items-center gap-1 hover:text-blue cursor-pointer">
+                                <span className="font-bold text-text">2</span> following
+                            </div>
+                        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* 3. REPOSITORY SUMMARY SECTION */}
-                <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-text">Repositories</h2>
-                    <div className="bg-mantle border border-surface0 rounded-lg overflow-hidden">
-                        {stats.repo_summaries.map((repo) => (
-                            <div
-                                key={repo.id}
-                                onClick={() => onNavigateRepo(repo.id)}
-                                className="flex items-center justify-between p-3 border-b border-surface0 last:border-0 hover:bg-surface0/50 cursor-pointer transition-colors"
-                            >
-                                <div>
-                                    <div className="font-medium text-text">{repo.name}</div>
-                                    <div className="text-xs text-subtext0">{repo.primary_category || 'No activity'}</div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-sm font-bold text-text">{repo.total_commits}</div>
-                                    <div className="text-xs text-subtext0">commits</div>
+                        <div className="space-y-2 border-t border-surface1 pt-4">
+                            <h3 className="font-bold text-text text-sm mb-2">Organizations</h3>
+                            <div className="flex gap-2">
+                                <div className="w-9 h-9 bg-surface0 border border-surface1 rounded-md flex items-center justify-center cursor-pointer hover:border-blue transition-colors" title="MindRepo Org">
+                                    <Activity size={20} className="text-blue" />
                                 </div>
                             </div>
-                        ))}
-                        {stats.repo_summaries.length === 0 && (
-                            <div className="p-4 text-center text-subtext0 text-sm">No repositories yet.</div>
-                        )}
+                        </div>
                     </div>
                 </div>
 
-                {/* 4. ACTIVITY BREAKDOWN */}
-                <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-text">Activity Breakdown</h2>
-                    <div className="bg-mantle border border-surface0 rounded-lg p-4 space-y-3">
-                        {stats.category_breakdown.map((cat) => (
-                            <div key={cat.category} className="space-y-1">
-                                <div className="flex justify-between text-xs font-medium text-text">
-                                    <span>{cat.category}</span>
-                                    <span>{cat.count}</span>
+                {/* 2. RIGHT CONTENT */}
+                <div className="space-y-6">
+
+                    {/* Popular Repositories */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-base font-normal text-text">Popular repositories</h2>
+                            <span className="text-xs text-subtext0 hover:text-blue cursor-pointer">Customize your pins</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {stats.repo_summaries.slice(0, 6).map((repo) => (
+                                <div
+                                    key={repo.id}
+                                    onClick={() => onNavigateRepo(repo.id)}
+                                    className="bg-base border border-surface1 rounded-md p-4 flex flex-col justify-between hover:border-subtext0 cursor-pointer transition-colors h-[100px]"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-bold text-blue text-sm hover:underline">{repo.name}</span>
+                                        <span className="text-xs border border-surface1 rounded-full px-2 py-0.5 text-subtext0">Public</span>
+                                    </div>
+                                    <div className="text-xs text-subtext0 mt-2 truncate">
+                                        {repo.primary_category ? `${repo.primary_category} related tasks` : "No description"}
+                                    </div>
+                                    <div className="flex items-center gap-4 mt-auto text-xs text-subtext0 pt-3">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 rounded-full bg-blue"></div>
+                                            <span>TypeScript</span>
+                                        </div>
+                                        {repo.total_commits > 0 && (
+                                            <div className="flex items-center gap-1 hover:text-blue">
+                                                <GitCommit size={14} />
+                                                <span>{repo.total_commits}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="w-full h-2 bg-surface0 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-blue"
-                                        style={{ width: `${(cat.count / stats.total_commits) * 100}%` }}
-                                    ></div>
+                            ))}
+                            {stats.repo_summaries.length === 0 && (
+                                <div className="text-sm text-subtext0 italic">No repositories yet. Create one to see it here!</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Heatmap Section */}
+                    <div className="pt-2">
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-base font-normal text-text">{stats.total_commits} contributions in the last year</h2>
+                            <div className="flex items-center gap-4 text-xs text-blue cursor-pointer">
+                                <span>Contribution settings</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-mantle border border-surface0 rounded-lg p-4 shadow-sm relative overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                {/* Heatmap Grid */}
+                                <div className="overflow-x-auto pb-2 flex-1">
+                                    <div className="grid grid-flow-col grid-rows-7 gap-1 min-w-[700px]">
+                                        {fullHeatmap.map((day) => (
+                                            <div
+                                                key={day.date}
+                                                className={`w-[10px] h-[10px] rounded-[2px] ${LEVEL_COLORS[day.level]} hover:ring-1 hover:ring-text/50 transition-all cursor-pointer`}
+                                                title={`${day.date}: ${day.count} commits`}
+                                            ></div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Year Selector (Visual only for now) */}
+                                <div className="ml-6 flex flex-col gap-2">
+                                    <button className="bg-blue text-crust text-xs font-medium py-1.5 px-4 rounded-l-md w-full text-left">2026</button>
+                                    <button className="text-subtext0 hover:bg-surface0 text-xs font-medium py-1.5 px-4 rounded-l-md w-full text-left transition-colors">2025</button>
+                                    <button className="text-subtext0 hover:bg-surface0 text-xs font-medium py-1.5 px-4 rounded-l-md w-full text-left transition-colors">2024</button>
                                 </div>
                             </div>
-                        ))}
-                        {stats.category_breakdown.length === 0 && (
-                            <div className="text-center text-subtext0 text-sm">No activity data.</div>
-                        )}
+
+                            <div className="flex items-center justify-between mt-4 text-xs text-subtext0 border-t border-surface0/50 pt-3">
+                                <a href="#" className="hover:text-blue">Learn how we count contributions</a>
+                                <div className="flex items-center gap-2">
+                                    <span>Less</span>
+                                    <div className="flex gap-1">
+                                        {LEVEL_COLORS.map(c => <div key={c} className={`w-[10px] h-[10px] rounded-[2px] ${c}`}></div>)}
+                                    </div>
+                                    <span>More</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Activity Breakdown (Mini) */}
+                        <div className="mt-8">
+                            <h2 className="text-base font-normal text-text mb-4">Contribution activity</h2>
+                            <div className="relative border-l border-surface1 ml-4 space-y-6 pb-4">
+                                <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-surface1"></div>
+                                <div className="pl-6">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-bold text-text bg-surface0 px-2 py-0.5 rounded-md">January 2026</span>
+                                    </div>
+                                    {stats.category_breakdown.map((cat) => (
+                                        <div key={cat.category} className="flex items-center gap-3 py-1 group">
+                                            <div className="p-1.5 rounded-full bg-surface1 text-text group-hover:bg-blue group-hover:text-crust transition-colors">
+                                                <GitCommit size={14} />
+                                            </div>
+                                            <div className="text-sm">
+                                                Created {cat.count} commits in <span className="font-bold text-text">{cat.category}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {stats.category_breakdown.length === 0 && (
+                                        <div className="text-sm text-subtext0 italic">No activity yet this month.</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
